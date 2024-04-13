@@ -1,0 +1,65 @@
+# Visual Studio Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.iml
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/[Pp]ackages/repositories.config
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Visual Studio cache files
+*.dbmdl
+*.dbproj.schemaview
+*.pfx
+*.publishsettings
+*.xml
+*.vc.db
+*.VC.opendb
+
+# Rider
+.idea/
+*.sln.iml
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Visual Studio 2019
+.vs/
+
+/Application/Migrations/
+
+appsettings.json
+appsettings.Development.json
+ProjectComponentFunctions.txt
+.git/
