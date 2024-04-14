@@ -28,7 +28,7 @@ public class UserController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while getting users");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
     
@@ -56,7 +56,7 @@ public class UserController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while processing GetUserById request");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
     
@@ -79,7 +79,7 @@ public class UserController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while adding user");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
     
@@ -101,7 +101,7 @@ public class UserController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while updating user");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 
@@ -124,7 +124,7 @@ public class UserController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while deleting user");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 }

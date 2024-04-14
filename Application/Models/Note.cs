@@ -5,8 +5,9 @@ public class Note
     public int NoteId { get; set; }
     public int UserId { get; set; }
     public string UserUid { get; set; }
-    public string NoteTitle { get; set; }
-    public string NoteContent { get; set; }
-    public DateTime DateCreated { get; set; }
-    public DateTime DateUpdated { get; set; }
+    public string? NoteTitle { get; set; }
+    public string? NoteContent { get; set; }
+    public string? NoteSlug { get; set; }
+    public DateTime? DateCreated { get; set; }
+    public DateTime? DateUpdated { get; set; }
 }

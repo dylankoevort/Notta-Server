@@ -1,4 +1,5 @@
 using Infrastructure;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Models;
 
 namespace Service;
@@ -72,7 +73,8 @@ public class UserService : IUserService
         
             if (GetUserById(user.UserId, user.UserUid) != null)
             {
-                throw new InvalidOperationException("User already exists");
+                // throw new InvalidOperationException("User already exists");
+                return;
             }
         
             _userRepository.AddUser(user);
