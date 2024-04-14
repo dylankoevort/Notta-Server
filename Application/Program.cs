@@ -39,7 +39,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<INoteService, NoteService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-const string pathBase = "/nota";
+const string pathBase = "/notta";
 
 var app = builder.Build();
 
