@@ -55,6 +55,20 @@ public class NoteRepository : INoteRepository
             throw;
         }
     }
+    
+    public Note GetNoteBySlug(string noteSlug)
+    {
+        try
+        {
+            return _context.Notes.FirstOrDefault(n => n.NoteSlug.ToLower().Equals(noteSlug.ToLower()));
+        }
+        catch (Exception ex)
+        {
+            // logger.LogError(ex, "An error occurred while getting note by slug");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
 
     public void AddNote(Note note)
     {

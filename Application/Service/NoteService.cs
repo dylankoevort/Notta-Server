@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Application.Helpers;
+using AutoMapper;
 using Infrastructure;
 using Models;
 
@@ -63,6 +64,20 @@ public class NoteService : INoteService
             throw;
         }
     }
+    
+    public Note GetNoteBySlug(string noteSlug)
+    {
+        try
+        {
+            return _noteRepository.GetNoteBySlug(noteSlug);
+        }
+        catch (Exception ex)
+        {
+            // logger.LogError(ex, "An error occurred while getting note by slug");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
 
     public void AddNote(Note note)
     {
@@ -89,6 +104,7 @@ public class NoteService : INoteService
             note.UserUid = dbUser.UserUid;
             note.DateCreated = DateTime.UtcNow;
             note.DateUpdated = DateTime.UtcNow;
+            note.NoteSlug = NoteSlugGenerator.GenerateSlug(note).ToUpper();
                 
             _noteRepository.AddNote(note);
         }

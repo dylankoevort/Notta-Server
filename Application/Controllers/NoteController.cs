@@ -29,7 +29,7 @@ public class NoteController : ControllerBase
             // Log the exception for further investigation
             // logger.LogError(ex, "An error occurred while getting notes");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 
@@ -46,7 +46,7 @@ public class NoteController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while getting notes by user ID");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 
@@ -67,7 +67,28 @@ public class NoteController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while getting note by ID");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
+        }
+    }
+    
+    // GET: api/Note/GetNoteBySlug/{noteSlug}
+    [HttpGet("GetNoteBySlug")]
+    public ActionResult<Note> GetNoteBySlug(string noteSlug)
+    {
+        try
+        {
+            var note = _noteService.GetNoteBySlug(noteSlug);
+            if (note == null)
+            {
+                return NotFound();
+            }
+            return Ok(note);
+        }
+        catch (Exception ex)
+        {
+            // logger.LogError(ex, "An error occurred while getting note by slug");
+            Console.WriteLine(ex.Message);
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 
@@ -90,7 +111,7 @@ public class NoteController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while adding note");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 
@@ -112,7 +133,7 @@ public class NoteController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while updating note");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 
@@ -135,7 +156,7 @@ public class NoteController : ControllerBase
         {
             // logger.LogError(ex, "An error occurred while deleting note");
             Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request");
+            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
         }
     }
 }
