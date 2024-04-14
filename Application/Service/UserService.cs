@@ -14,63 +14,129 @@ public class UserService : IUserService
 
     public IEnumerable<User> GetAllUsers()
     {
-        return _userRepository.GetAllUsers();
+        try
+        {
+            return _userRepository.GetAllUsers();
+        }
+        catch (Exception ex)
+        {
+            // logger.LogError(ex, "An error occurred while getting all users");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
-    public User GetUserById(int userId)
+    public User GetUserById(int? userId, string? userUid)
     {
-        return _userRepository.GetUserById(userId);
+        try
+        {
+            if ((userId == null || userId == 0) && userUid == null)
+            {
+                throw new ArgumentNullException(nameof(userId), "userId or userUid must be provided");
+            }
+        
+            if (userId != null && userId != 0)
+            {
+                return _userRepository.GetUserById(userId.Value);
+            }
+        
+            return _userRepository.GetUserByUid(userUid);
+        }
+        catch (Exception ex)
+        {
+            // logger.LogError(ex, "An error occurred while getting user by ID");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
-    
-    public User GetUserById(string userUid)
-    {
-        return _userRepository.GetUserById(userUid);
-    }
+
 
     public void AddUser(User user)
     {
-        var dbUser = GetUserById(user.UserId);
-        
-        if (dbUser == null)
+        try
         {
-            dbUser = GetUserById(user.UserUid);
-        }
+            if (string.IsNullOrEmpty(user.UserUid))
+            {
+                throw new ArgumentNullException(nameof(user.UserUid), "UserUid must be provided");
+            }
         
-        if (dbUser != null)
+            if (string.IsNullOrEmpty(user.UserName))
+            {
+                throw new ArgumentNullException(nameof(user.UserName), "UserName must be provided");
+            }
+        
+            if (string.IsNullOrEmpty(user.UserEmail))
+            {
+                throw new ArgumentNullException(nameof(user.UserEmail), "UserEmail must be provided");
+            }
+        
+            if (GetUserById(user.UserId, user.UserUid) != null)
+            {
+                throw new InvalidOperationException("User already exists");
+            }
+        
+            _userRepository.AddUser(user);
+        }
+        catch (Exception ex)
         {
-            throw new Exception("User already exists");
+            // logger.LogError(ex, "An error occurred while adding user");
+            Console.WriteLine(ex.Message);
+            throw;
         }
-        
-        _userRepository.AddUser(user);
     }
 
     public void UpdateUser(User user)
     {
-        var dbUser = GetUserById(user.UserUid);
-        
-        if (dbUser == null)
+        try
         {
-            throw new Exception("User does not exist");
+            if (string.IsNullOrEmpty(user.UserUid))
+            {
+                throw new ArgumentNullException(nameof(user.UserUid), "UserUid must be provided");
+            }
+
+            var dbUser = GetUserById(user.UserId, user.UserUid);
+
+            if (dbUser == null)
+            {
+                throw new InvalidOperationException("User does not exist");
+            }
+            
+            dbUser.UserName = user.UserName;
+            dbUser.UserEmail = user.UserEmail;
+
+            _userRepository.UpdateUser();
         }
-        
-        var updatedUser = new User
+        catch (Exception ex)
         {
-            UserId = dbUser.UserId,
-            UserUid = user.UserUid,
-            UserName = user.UserName,
-            UserEmail = user.UserEmail
-        };
-        
-        _userRepository.UpdateUser(updatedUser);
+            // logger.LogError(ex, "An error occurred while updating user");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
-    public void DeleteUser(int userId)
+    public void DeleteUser(int? userId, string? userUid)
     {
-        _userRepository.DeleteUser(userId);
-    }
-    
-    public void DeleteUser(string userUid)
-    {
-        _userRepository.DeleteUser(userUid);
+        try
+        {
+            if (userId == null && userUid == null)
+            {
+                throw new ArgumentNullException(nameof(userId), "userId or userUid must be provided");
+            }
+        
+            var dbUser = GetUserById(userId, userUid);
+        
+            if (dbUser == null)
+            {
+                throw new InvalidOperationException("User does not exist");
+            }
+        
+            _userRepository.DeleteUser(dbUser.UserId);
+        }
+        catch (Exception ex)
+        {
+            // logger.LogError(ex, "An error occurred while deleting user");
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 }

@@ -4,8 +4,8 @@ namespace Infrastructure;
 
 public interface INoteService
 {
-    IEnumerable<Note> GetNotesByUserId(int userId);
-    IEnumerable<Note> GetNotesByUserId(string userUid);
+    IEnumerable<Note> GetAllNotes();
+    IEnumerable<Note> GetNotesByUserId(int? userId, string? userUid);
     Note GetNoteById(int noteId);
     void AddNote(Note note);
     void UpdateNote(Note note);

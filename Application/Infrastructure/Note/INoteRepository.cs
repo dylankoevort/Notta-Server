@@ -3,10 +3,10 @@ namespace Infrastructure;
 
 public interface INoteRepository
 {
+    IEnumerable<Note> GetAllNotes();
     IEnumerable<Note> GetNotesByUserId(int userId);
-    IEnumerable<Note> GetNotesByUserId(string userUid);
     Note GetNoteById(int noteId);
     void AddNote(Note note);
-    void UpdateNote(Note note);
+    void UpdateNote();
     void DeleteNote(int noteId);
 }
