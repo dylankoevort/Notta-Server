@@ -15,8 +15,8 @@ public class DatabaseTester
     {
         try
         {
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-
+            // var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            var connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
             using var connection = new NpgsqlConnection(connectionString);
             connection.Open();
             // If the connection is successful, return true or log a success message
