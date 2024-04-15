@@ -28,7 +28,8 @@ public class AppDbContext : DbContext
         {
             if (_configuration != null)
             {
-                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                // var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                var connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
                 optionsBuilder.UseNpgsql(connectionString);
             }
             else
