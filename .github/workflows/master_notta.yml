@@ -53,5 +53,5 @@ jobs:
         with:
           app-name: 'Notta'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4F16281BE7F042C9B2F120786A4C933B }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2953B7743AF64353A6CFA16B1D4C6CE9 }}
           package: .
