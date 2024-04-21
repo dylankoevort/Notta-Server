@@ -2,8 +2,8 @@ using Application;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Repository;
 using Service;
+using Google.Cloud.Firestore;
 
 var builder = WebApplication.CreateBuilder(args);
 const string serviceName = "Notta";
@@ -22,23 +22,19 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAn
     .AllowAnyMethod()
     .AllowAnyHeader()));
 
-// DbContext
-// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseNpgsql(connectionString);
-});
-
 builder.Services.AddSingleton<DatabaseTester>();
+builder.Services.AddSingleton<FirebaseContext>();
 
 // Repositories
-builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<INotebookRepository, NotebookRepository>();
+builder.Services.AddScoped<INoteRepository, NoteRepository>();
 
 // Services
-builder.Services.AddScoped<INoteService, NoteService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<INotebookService, NotebookService>();
+builder.Services.AddScoped<INoteService, NoteService>();
+
 
 const string pathBase = "/notta";
 

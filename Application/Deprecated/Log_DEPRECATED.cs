@@ -1,6 +1,6 @@
 namespace Models;
 
-public class Log
+public class Log_DEPRECATED
 {
     public int LogId { get; set; }
     public int UserId { get; set; }

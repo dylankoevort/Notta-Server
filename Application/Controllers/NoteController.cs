@@ -1,163 +1,88 @@
 using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Application.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
-public class NoteController : ControllerBase
+namespace Application.Controllers
 {
-    private readonly INoteService _noteService;
+    [ApiController]
+    [Route("api/[controller]")]
+    public class NoteController : ControllerBase
+    {
+        private readonly INoteService _noteService;
 
-    public NoteController(INoteService noteService)
-    {
-        _noteService = noteService ?? throw new ArgumentNullException(nameof(noteService));
-    }
-    
-    // GET: api/Note/GetNotes
-    [HttpGet("GetNotes")]
-    public ActionResult<IEnumerable<Note>> GetNotes()
-    {
-        try
+        public NoteController(INoteService noteService)
         {
-            var notes = _noteService.GetAllNotes();
+            _noteService = noteService;
+        }
+
+        [HttpGet("GetAllNotes")]
+        public async Task<ActionResult<IEnumerable<Note>>> GetAllNotes()
+        {
+            var notes = await _noteService.GetAllNotes();
             return Ok(notes);
         }
-        catch (Exception ex)
-        {
-            // Log the exception for further investigation
-            // logger.LogError(ex, "An error occurred while getting notes");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
 
-    // GET: api/Note/GetNotesByUserId/{userId/userUid}
-    [HttpGet("GetNotesByUserId")]
-    public ActionResult<IEnumerable<Note>> GetNotesByUserId(int? userId, string? userUid)
-    {
-        try
+        [HttpGet("GetNoteById")]
+        public async Task<ActionResult<Note>> GetNoteById(string userId, string notebookId, string noteId)
         {
-            var notes = _noteService.GetNotesByUserId(userId, userUid);
-            return Ok(notes);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting notes by user ID");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
-
-    // GET: api/Note/GetNoteById/{noteId}
-    [HttpGet("GetNoteById")]
-    public ActionResult<Note> GetNoteById(int noteId)
-    {
-        try
-        {
-            var note = _noteService.GetNoteById(noteId);
+            var note = await _noteService.GetNoteById(userId, notebookId, noteId);
             if (note == null)
             {
                 return NotFound();
             }
             return Ok(note);
         }
-        catch (Exception ex)
+        
+        [HttpGet("GetNotesByUserId")]
+        public async Task<ActionResult<IEnumerable<Note>>> GetNotesByUserId([FromQuery] string userId)
         {
-            // logger.LogError(ex, "An error occurred while getting note by ID");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
+            var notes = await _noteService.GetNotesByUserId(userId);
+            return Ok(notes);
         }
-    }
-    
-    // GET: api/Note/GetNoteBySlug/{noteSlug}
-    [HttpGet("GetNoteBySlug")]
-    public ActionResult<Note> GetNoteBySlug(string noteSlug)
-    {
-        try
+        
+        [HttpGet("GetNotesByNotebookId")]
+        public async Task<ActionResult<IEnumerable<Note>>> GetNotesByNotebookId([FromQuery] string userId, [FromQuery] string notebookId)
         {
-            var note = _noteService.GetNoteBySlug(noteSlug);
-            if (note == null)
-            {
-                return NotFound();
-            }
-            return Ok(note);
+            var notes = await _noteService.GetNotesByNotebookId(userId, notebookId);
+            return Ok(notes);
         }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting note by slug");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
 
-    // POST: api/Note/AddNote
-    [HttpPost("AddNote")]
-    public ActionResult<Note> AddNote([FromBody] Note note)
-    {
-        try
+        [HttpPost("CreateNote")]
+        public async Task<ActionResult<Note>> CreateNote([FromQuery] string userId, [FromQuery] string notebookId, [FromBody] Note note)
         {
-            if (note == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Note data is missing");
+                return BadRequest(ModelState);
             }
 
-            _noteService.AddNote(note);
-
-            return CreatedAtAction(nameof(GetNoteById), new { noteId = note.NoteId }, note);
+            var createdNote = await _noteService.CreateNote(userId, notebookId, note);
+            return CreatedAtAction(nameof(GetNoteById), new { userId = userId, notebookId = notebookId, noteId = createdNote.NoteId }, createdNote);
         }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while adding note");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
 
-    // PUT: api/Note/UpdateNote/{noteId}
-    [HttpPut("UpdateNote")]
-    public IActionResult UpdateNote(int noteId, [FromBody] Note note)
-    {
-        try
+        [HttpPut("UpdateNote")]
+        public async Task<ActionResult<Note>> UpdateNote(string userId, string notebookId, string noteId, [FromBody] Note note)
         {
             if (noteId != note.NoteId)
             {
                 return BadRequest("Note ID mismatch");
             }
 
-            _noteService.UpdateNote(note);
-            return Ok("Note updated successfully");
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while updating note");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
-
-    // DELETE: api/Note/DeleteNote/{noteId}
-    [HttpDelete("DeleteNote")]
-    public IActionResult DeleteNote(int noteId)
-    {
-        try
-        {
-            var note = _noteService.GetNoteById(noteId);
-            if (note == null)
+            var updatedNote = await _noteService.UpdateNote(userId, notebookId, note);
+            if (updatedNote == null)
             {
-                return NotFound("Note not found");
+                return NotFound();
             }
 
-            _noteService.DeleteNote(noteId);
-            return Ok("Note deleted successfully");
+            return Ok(updatedNote);
         }
-        catch (Exception ex)
+
+        [HttpDelete("DeleteNote")]
+        public async Task<ActionResult> DeleteNote(string userId, string notebookId, string noteId)
         {
-            // logger.LogError(ex, "An error occurred while deleting note");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
+            await _noteService.DeleteNote(userId, notebookId, noteId);
+            return NoContent();
         }
     }
 }
-

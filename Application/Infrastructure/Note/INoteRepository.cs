@@ -1,13 +1,14 @@
 using Models;
+
 namespace Infrastructure;
 
 public interface INoteRepository
 {
-    IEnumerable<Note> GetAllNotes();
-    IEnumerable<Note> GetNotesByUserId(int userId);
-    Note GetNoteById(int noteId);
-    Note GetNoteBySlug(string noteSlug);
-    void AddNote(Note note);
-    void UpdateNote();
-    void DeleteNote(int noteId);
+    Task<IEnumerable<Note>> GetAllNotes();
+    Task<Note> GetNoteById(string userId, string notebookId, string noteId);
+    Task<IEnumerable<Note>> GetNotesByUserId(string userId);
+    Task<IEnumerable<Note>> GetNotesByNotebookId(string userId, string notebookId);
+    Task<Note> CreateNote(string userId, string notebookId, Note note);
+    Task<Note> UpdateNote(string userId, string notebookId, Note note);
+    Task DeleteNote(string userId, string notebookId, string noteId);
 }

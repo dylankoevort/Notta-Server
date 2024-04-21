@@ -1,113 +1,58 @@
-using Application;
+using Google.Cloud.Firestore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using Models;
-
-namespace Repository;
 
 public class UserRepository : IUserRepository
 {
-    private readonly AppDbContext _context;
+    private readonly FirebaseContext _firebaseContext;
+    private const string CollectionName = "users";
 
-    public UserRepository(AppDbContext context)
+    public UserRepository(FirebaseContext firebaseContext)
     {
-        _context = context;
+        _firebaseContext = firebaseContext ?? throw new ArgumentNullException(nameof(firebaseContext));
     }
 
-public IEnumerable<User> GetAllUsers()
-{
-    try
+    public async Task<IEnumerable<User>> GetAllUsers()
     {
-        return _context.Users.ToList();
-    }
-    catch (Exception ex)
-    {
-        // logger.LogError(ex, "An error occurred while getting all users");
-        Console.WriteLine(ex.Message);
-        throw;
-    }
-}
+        var query = _firebaseContext.Database.Collection(CollectionName);
+        var querySnapshot = await query.GetSnapshotAsync();
 
-public User GetUserById(int userId)
-{
-    try
-    {
-        return _context.Users.FirstOrDefault(u => u.UserId == userId);
-    }
-    catch (Exception ex)
-    {
-        // logger.LogError(ex, "An error occurred while getting user by ID");
-        Console.WriteLine(ex.Message);
-        throw;
-    }
-}
-
-public User GetUserByUid(string userUid)
-{
-    try
-    {
-        return _context.Users.FirstOrDefault(u => u.UserUid.Equals(userUid));
-    }
-    catch (Exception ex)
-    {
-        // logger.LogError(ex, "An error occurred while getting user by UID");
-        Console.WriteLine(ex.Message);
-        throw;
-    }
-}
-
-public void AddUser(User user)
-{
-    try
-    {
-        _context.Users.Add(user);
-        _context.SaveChanges();
-    }
-    catch (Exception ex)
-    {
-        // logger.LogError(ex, "An error occurred while adding user");
-        Console.WriteLine(ex.Message);
-        throw;
-    }
-}
-
-public void UpdateUser()
-{
-    try
-    {
-        _context.SaveChanges();
-    }
-    catch (Exception ex)
-    {
-        // logger.LogError(ex, "An error occurred while updating user");
-        Console.WriteLine(ex.Message);
-        throw;
-    }
-}
-
-public void DeleteUser(int userId)
-{
-    try
-    {
-        var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
-        if (user != null)
+        var users = new List<User>();
+        foreach (var documentSnapshot in querySnapshot.Documents)
         {
-            _context.Users.Remove(user);
-            _context.SaveChanges();
+            users.Add(documentSnapshot.ConvertTo<User>());
         }
-        else
-        {
-            // User not found, handle the situation
-            // For example, throw an exception or log a message
-            throw new InvalidOperationException($"User with ID {userId} not found");
-        }
+        return users;
     }
-    catch (Exception ex)
-    {
-        // logger.LogError(ex, "An error occurred while deleting user");
-        Console.WriteLine(ex.Message);
-        throw;
-    }
-}
 
+    public async Task<User> GetUserById(string userId)
+    {
+        var document = _firebaseContext.Database.Collection(CollectionName).Document(userId.ToString());
+        var documentSnapshot = await document.GetSnapshotAsync();
+        return documentSnapshot.Exists ? documentSnapshot.ConvertTo<User>() : null;
+    }
+    
+    public async Task<User> CreateUser(User user)
+    {
+        var collection = _firebaseContext.Database.Collection(CollectionName);
+        var documentReference = await collection.AddAsync(user);
+        user.UserId = documentReference.Id;
+        return user;
+    }
+
+    public async Task<User> UpdateUser(User user)
+    {
+        var document = _firebaseContext.Database.Collection(CollectionName).Document(user.UserId.ToString());
+        await document.SetAsync(user, SetOptions.MergeAll);
+        return user;
+    }
+    
+    public async Task DeleteUser(string userId)
+    {
+        var document = _firebaseContext.Database.Collection(CollectionName).Document(userId.ToString());
+        await document.DeleteAsync();
+    }
 }

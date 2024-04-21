@@ -4,10 +4,9 @@ namespace Infrastructure;
 
 public interface IUserRepository
 {
-    IEnumerable<User> GetAllUsers();
-    User GetUserById(int userId);
-    User GetUserByUid(string userUid);
-    void AddUser(User user);
-    void UpdateUser();
-    void DeleteUser(int userId);
+    Task<IEnumerable<User>> GetAllUsers();
+    Task<User> GetUserById(string userId);
+    Task<User> CreateUser(User user);
+    Task<User> UpdateUser(User user);
+    Task DeleteUser(string userId);
 }

@@ -11,12 +11,12 @@ public class NoteSlugGenerator
             throw new ArgumentNullException(nameof(note));
         }
         
-        if (string.IsNullOrEmpty(note.UserUid))
+        if (string.IsNullOrEmpty(note.UserId))
         {
-            throw new ArgumentNullException(nameof(note.UserUid), "UserUid must be provided");
+            throw new ArgumentNullException(nameof(note.UserId), "UserId must be provided");
         }
         
-        string slug = GetLastNCharacters(note.UserUid) + "-" + GenerateDateTimeString() + "-" + GenerateRandomString();
+        string slug = GetLastNCharacters(note.UserId) + "-" + GenerateDateTimeString() + "-" + GenerateRandomString();
         
         slug = slug.ToLower();
         

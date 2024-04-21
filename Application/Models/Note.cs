@@ -1,13 +1,73 @@
-﻿namespace Models;
+﻿using Application.Helpers;
+using Google.Cloud.Firestore;
 
-public class Note
+namespace Models
 {
-    public int NoteId { get; set; }
-    public int UserId { get; set; }
-    public string UserUid { get; set; }
-    public string? NoteTitle { get; set; }
-    public string? NoteContent { get; set; }
-    public string? NoteSlug { get; set; }
-    public DateTime? DateCreated { get; set; }
-    public DateTime? DateUpdated { get; set; }
+    [FirestoreData]
+    public class Note
+    {
+        [FirestoreProperty]
+        public string NoteId { get; set; }
+
+        [FirestoreProperty]
+        public string UserId { get; set; }
+
+        [FirestoreProperty]
+        public string? NoteTitle { get; set; }
+
+        [FirestoreProperty]
+        public string? NoteContent { get; set; }
+
+        [FirestoreProperty]
+        public DateTime? DateCreated { get; set; }
+
+        [FirestoreProperty]
+        public DateTime? DateUpdated { get; set; }
+    }
+
+    public class NoteConverter : IFirestoreConverter<Note>
+    { 
+        public Note FromFirestore(DocumentSnapshot snapshot)
+        {
+            Dictionary<string, object> dictionary = snapshot.ToDictionary();
+
+            return new Note
+            {
+                NoteId = (string)(dictionary["noteId"]),
+                UserId = (string)(dictionary["userId"]),
+                NoteTitle = (string)dictionary["noteTitle"],
+                NoteContent = (string)dictionary["noteContent"],
+                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
+                DateUpdated = Helpers.ConvertFirestoreTimestamp(dictionary["dateUpdated"])
+            };
+        }
+
+        public Note FromFirestore(object value)
+        {
+            Dictionary<string, object> dictionary = (Dictionary<string, object>)value;
+
+            return new Note
+            {
+                NoteId = (string)(dictionary["noteId"]),
+                UserId = (string)(dictionary["userId"]),
+                NoteTitle = (string)dictionary["noteTitle"],
+                NoteContent = (string)dictionary["noteContent"],
+                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
+                DateUpdated = Helpers.ConvertFirestoreTimestamp(dictionary["dateUpdated"])
+            };
+        }
+
+        public object ToFirestore(Note value)
+        {
+            return new Dictionary<string, object>
+            {
+                { "noteId", value.NoteId },
+                { "userId", value.UserId },
+                { "noteTitle", value.NoteTitle },
+                { "noteContent", value.NoteContent },
+                { "dateCreated", value.DateCreated },
+                { "dateUpdated", value.DateUpdated }
+            };
+        }
+    }
 }

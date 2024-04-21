@@ -1,31 +1,26 @@
-using Npgsql;
+using Google.Cloud.Firestore;
 
 namespace Application;
 
 public class DatabaseTester
 {
-    private readonly IConfiguration _configuration;
-
-    public DatabaseTester(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
+    public DatabaseTester()
+    {}
 
     public bool TestConnection()
     {
         try
-        {
-            // var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            var connectionString = Environment.GetEnvironmentVariable("DefaultConnection");
-            using var connection = new NpgsqlConnection(connectionString);
-            connection.Open();
-            // If the connection is successful, return true or log a success message
-            Console.WriteLine("Connection successful!");
+        {   
+            FirebaseContext firebaseContext = new FirebaseContext();
+            var db = firebaseContext.Database;
+
+            var users = db.Collection("users").GetSnapshotAsync().Result;
+            
+            Console.WriteLine("Firestore initialized successfully!");
             return true;
         }
         catch (Exception ex)
         {
-            // If the connection fails, log the exception or return false
             Console.WriteLine($"Connection failed: {ex.Message}");
             return false;
         }
