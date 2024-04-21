@@ -22,6 +22,9 @@ namespace Models
 
         [FirestoreProperty]
         public DateTime? DateCreated { get; set; }
+        
+        [FirestoreProperty]
+        public IEnumerable<Note> Notes { get; set; }
     }
 
     public class NotebookConverter : IFirestoreConverter<Notebook>
@@ -37,6 +40,7 @@ namespace Models
                 NotebookTitle = (string)dictionary["notebookTitle"],
                 NotebookDescription = (string)dictionary["notebookDescription"],
                 DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
+                Notes = new List<Note>()
             };
         }
 
@@ -51,6 +55,7 @@ namespace Models
                 NotebookTitle = (string)dictionary["notebookTitle"],
                 NotebookDescription = (string)dictionary["notebookDescription"],
                 DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
+                Notes = new List<Note>()
             };
         }
 

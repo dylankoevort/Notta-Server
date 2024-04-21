@@ -1,7 +1,6 @@
 using Google.Cloud.Firestore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure;
 using Models;
@@ -9,11 +8,13 @@ using Models;
 public class NotebookRepository : INotebookRepository
 {
     private readonly FirebaseContext _firebaseContext;
+    private readonly INoteRepository _noteRepository;
     private const string UsersCollectionName = "users";
 
-    public NotebookRepository(FirebaseContext firebaseContext)
+    public NotebookRepository(FirebaseContext firebaseContext, INoteRepository noteRepository)
     {
         _firebaseContext = firebaseContext ?? throw new ArgumentNullException(nameof(firebaseContext));
+        _noteRepository = noteRepository ?? throw new ArgumentNullException(nameof(noteRepository));
     }
 
     public async Task<IEnumerable<Notebook>> GetAllNotebooks()
@@ -49,7 +50,13 @@ public class NotebookRepository : INotebookRepository
         var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
         var notebookDocument = userRef.Collection("notebooks").Document(notebookId.ToString());
         var documentSnapshot = await notebookDocument.GetSnapshotAsync();
-        return documentSnapshot.Exists ? documentSnapshot.ConvertTo<Notebook>() : null;
+        var notebook = documentSnapshot.Exists ? documentSnapshot.ConvertTo<Notebook>() : null;
+        if (notebook != null)
+        {
+            // Fetch notes for this notebook
+            notebook.Notes = await _noteRepository.GetNotesByNotebookId(userId, notebookId);
+        }
+        return notebook;
     }
     
     public async Task<IEnumerable<Notebook>> GetNotebooksByUserId(string userId)
