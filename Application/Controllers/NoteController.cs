@@ -50,12 +50,12 @@ namespace Application.Controllers
         }
 
         [HttpPost("CreateNote")]
-        public async Task<ActionResult<Note>> CreateNote([FromQuery] string userId, [FromQuery] string notebookId, [FromBody] Note note)
+        public async Task<ActionResult<Note>> CreateNote(string userId, string notebookId, [FromBody] Note note)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            // if (!ModelState.IsValid)
+            // {
+            //     return BadRequest(ModelState);
+            // }
 
             var createdNote = await _noteService.CreateNote(userId, notebookId, note);
             return CreatedAtAction(nameof(GetNoteById), new { userId = userId, notebookId = notebookId, noteId = createdNote.NoteId }, createdNote);

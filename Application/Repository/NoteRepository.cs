@@ -1,7 +1,9 @@
 ﻿using Google.Cloud.Firestore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Application.Helpers;
 using Infrastructure;
 using Models;
 
@@ -64,21 +66,39 @@ public class NoteRepository : INoteRepository
     
     public async Task<IEnumerable<Note>> GetNotesByUserId(string userId)
     {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        Console.WriteLine("==================================================================");
+        Console.WriteLine("Getting notes by user id");
         var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebooksQuerySnapshot = await userRef.Collection("notebooks").GetSnapshotAsync();
+        var userSnapshot = await userRef.GetSnapshotAsync();
+        
+        Console.WriteLine("User snapshot exists: " + userSnapshot.Exists);
 
+        Console.WriteLine("Fetching notebooks...");
+        var notebooksQuerySnapshot = await userRef.Collection("notebooks").GetSnapshotAsync();
+        var notebookDocs = notebooksQuerySnapshot.Documents;
+        Console.WriteLine("Notebooks fetched: " + notebookDocs.Count);
+        
         var notes = new List<Note>();
         foreach (var notebookDocument in notebooksQuerySnapshot.Documents)
         {
+            Console.WriteLine("Fetching notes for notebook...");
+            Console.WriteLine("Notebook ID: " + notebookDocument.Id);
             var notebookId = notebookDocument.Id;
             var notesCollection = notebookDocument.Reference.Collection("notes");
             var notesQuerySnapshot = await notesCollection.GetSnapshotAsync();
-
+            
+            Console.WriteLine("Notes fetched: " + notesQuerySnapshot.Documents.Count);
+            Console.WriteLine("Adding notes to list...");
             foreach (var noteDocument in notesQuerySnapshot.Documents)
             {
+                Console.WriteLine("Note ID: " + noteDocument.Id);
                 notes.Add(noteDocument.ConvertTo<Note>());
             }
         }
+        Console.WriteLine("Returning notes...");
+        stopwatch.Stop();
+        Console.WriteLine("Elapsed time: " + stopwatch.ElapsedMilliseconds + "ms");
         return notes;
     }
 
@@ -102,10 +122,24 @@ public class NoteRepository : INoteRepository
     public async Task<Note> CreateNote(string userId, string notebookId, Note note)
     {
         var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString());
+        var notebookCollection = userRef.Collection("notebooks");
+        var newNotebook = new Notebook
+        {
+            NotebookId = notebookId,
+            UserId = userId,
+            NotebookTitle = "All Notes",
+        };
+        
+        await notebookCollection.Document(newNotebook.NotebookId).SetAsync(newNotebook,SetOptions.MergeAll);
+        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString()); // TODO: CHANGE WHEN NOTEBOOKS IMPLEMENTED
+        
         var noteCollection = notebookRef.Collection("notes");
-        var documentReference = await noteCollection.AddAsync(note);
-        note.NoteId = documentReference.Id;
+        
+        note.NoteId = Helpers.GenerateNewNoteId(note).ToUpper();
+        note.DateCreated = DateTime.UtcNow;
+        note.DateUpdated = DateTime.UtcNow;
+
+        await noteCollection.Document(note.NoteId).SetAsync(note);
         return note;
     }
 
@@ -114,6 +148,7 @@ public class NoteRepository : INoteRepository
         var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
         var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString());
         var noteDocument = notebookRef.Collection("notes").Document(note.NoteId.ToString());
+        note.DateUpdated = DateTime.UtcNow;
         await noteDocument.SetAsync(note, SetOptions.MergeAll);
         return note;
     }

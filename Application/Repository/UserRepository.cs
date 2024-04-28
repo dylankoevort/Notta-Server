@@ -38,8 +38,8 @@ public class UserRepository : IUserRepository
     public async Task<User> CreateUser(User user)
     {
         var collection = _firebaseContext.Database.Collection(CollectionName);
-        var documentReference = await collection.AddAsync(user);
-        user.UserId = documentReference.Id;
+        var documentReference = collection.Document(user.UserId);
+        await documentReference.SetAsync(user);
         return user;
     }
 

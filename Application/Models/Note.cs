@@ -11,6 +11,9 @@ namespace Models
 
         [FirestoreProperty]
         public string UserId { get; set; }
+        
+        [FirestoreProperty]
+        public string NotebookId { get; set; }
 
         [FirestoreProperty]
         public string? NoteTitle { get; set; }
@@ -35,6 +38,7 @@ namespace Models
             {
                 NoteId = (string)(dictionary["noteId"]),
                 UserId = (string)(dictionary["userId"]),
+                NotebookId = (string)(dictionary["notebookId"]),
                 NoteTitle = (string)dictionary["noteTitle"],
                 NoteContent = (string)dictionary["noteContent"],
                 DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
@@ -50,6 +54,7 @@ namespace Models
             {
                 NoteId = (string)(dictionary["noteId"]),
                 UserId = (string)(dictionary["userId"]),
+                NotebookId = (string)(dictionary["notebookId"]),
                 NoteTitle = (string)dictionary["noteTitle"],
                 NoteContent = (string)dictionary["noteContent"],
                 DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
@@ -63,6 +68,7 @@ namespace Models
             {
                 { "noteId", value.NoteId },
                 { "userId", value.UserId },
+                { "notebookId", value.NotebookId },
                 { "noteTitle", value.NoteTitle },
                 { "noteContent", value.NoteContent },
                 { "dateCreated", value.DateCreated },

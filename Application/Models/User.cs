@@ -26,7 +26,7 @@ namespace Models
             return new User
             {
                 UserId = (string)dictionary["UserId"],
-                UserName = (string)dictionary["UserName"],
+                UserName = (string)dictionary["UserName"], 
                 UserEmail = (string)dictionary["UserEmail"]
             };
         }
