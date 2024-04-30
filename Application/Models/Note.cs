@@ -13,7 +13,7 @@ namespace Models
         public string UserId { get; set; }
         
         [FirestoreProperty]
-        public string NotebookId { get; set; }
+        public string? NotebookId { get; set; }
 
         [FirestoreProperty]
         public string? NoteTitle { get; set; }

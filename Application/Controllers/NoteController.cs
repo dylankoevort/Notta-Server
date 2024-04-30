@@ -25,9 +25,9 @@ namespace Application.Controllers
         }
 
         [HttpGet("GetNoteById")]
-        public async Task<ActionResult<Note>> GetNoteById(string userId, string notebookId, string noteId)
+        public async Task<ActionResult<Note>> GetNoteById(string userId, string noteId)
         {
-            var note = await _noteService.GetNoteById(userId, notebookId, noteId);
+            var note = await _noteService.GetNoteById(userId, noteId);
             if (note == null)
             {
                 return NotFound();
@@ -50,26 +50,32 @@ namespace Application.Controllers
         }
 
         [HttpPost("CreateNote")]
-        public async Task<ActionResult<Note>> CreateNote(string userId, string notebookId, [FromBody] Note note)
+        public async Task<ActionResult<Note>> CreateNote(string userId, [FromBody] Note note)
         {
             // if (!ModelState.IsValid)
             // {
             //     return BadRequest(ModelState);
             // }
 
-            var createdNote = await _noteService.CreateNote(userId, notebookId, note);
-            return CreatedAtAction(nameof(GetNoteById), new { userId = userId, notebookId = notebookId, noteId = createdNote.NoteId }, createdNote);
+            var createdNote = await _noteService.CreateNote(userId, note);
+            return CreatedAtAction(nameof(GetNoteById), new { userId = userId, noteId = createdNote.NoteId }, createdNote);
         }
 
         [HttpPut("UpdateNote")]
-        public async Task<ActionResult<Note>> UpdateNote(string userId, string notebookId, string noteId, [FromBody] Note note)
+        public async Task<ActionResult<Note>> UpdateNote(string userId, string noteId, [FromBody] Note note)
         {
+            
+            if (userId != note.UserId)
+            {
+                return BadRequest("User ID mismatch");
+            }
+            
             if (noteId != note.NoteId)
             {
                 return BadRequest("Note ID mismatch");
             }
 
-            var updatedNote = await _noteService.UpdateNote(userId, notebookId, note);
+            var updatedNote = await _noteService.UpdateNote(userId, note);
             if (updatedNote == null)
             {
                 return NotFound();
@@ -79,9 +85,9 @@ namespace Application.Controllers
         }
 
         [HttpDelete("DeleteNote")]
-        public async Task<ActionResult> DeleteNote(string userId, string notebookId, string noteId)
+        public async Task<ActionResult> DeleteNote(string userId, string noteId)
         {
-            await _noteService.DeleteNote(userId, notebookId, noteId);
+            await _noteService.DeleteNote(userId, noteId);
             return NoContent();
         }
     }

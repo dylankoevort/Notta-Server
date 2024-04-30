@@ -11,6 +11,7 @@ public class NoteRepository : INoteRepository
 {
     private readonly FirebaseContext _firebaseContext;
     private const string UsersCollectionName = "users";
+    private const string NotesCollectionName = "notes";
 
     public NoteRepository(FirebaseContext firebaseContext)
     {
@@ -20,96 +21,34 @@ public class NoteRepository : INoteRepository
     public async Task<IEnumerable<Note>> GetAllNotes()
     {
         var usersCollection = _firebaseContext.Database.Collection(UsersCollectionName);
-
         var allNotes = new List<Note>();
-
-        // Get all documents from the users collection
         var usersQuerySnapshot = await usersCollection.GetSnapshotAsync();
-
-        // Iterate over each user document
         foreach (var userDocument in usersQuerySnapshot.Documents)
         {
-            // Get the notebooks subcollection for each user
-            var notebooksCollection = userDocument.Reference.Collection("notebooks");
-
-            // Get all documents from the notebooks subcollection
-            var notebooksQuerySnapshot = await notebooksCollection.GetSnapshotAsync();
-
-            // Iterate over each notebook document
-            foreach (var notebookDocument in notebooksQuerySnapshot.Documents)
-            {
-                // Get the notes subcollection for each notebook
-                var notesCollection = notebookDocument.Reference.Collection("notes");
-
-                // Get all documents from the notes subcollection
+                var notesCollection = userDocument.Reference.Collection(NotesCollectionName);
                 var notesQuerySnapshot = await notesCollection.GetSnapshotAsync();
-
-                // Iterate over each note document and add it to the list
                 foreach (var noteDocument in notesQuerySnapshot.Documents)
                 {
                     allNotes.Add(noteDocument.ConvertTo<Note>());
                 }
-            }
         }
 
         return allNotes;
     }
 
-    public async Task<Note> GetNoteById(string userId, string notebookId, string noteId)
+    public async Task<Note> GetNoteById(string userId, string noteId)
     {
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString());
-        var noteDocument = notebookRef.Collection("notes").Document(noteId.ToString());
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteDocument = userRef.Collection(NotesCollectionName).Document(noteId);
         var documentSnapshot = await noteDocument.GetSnapshotAsync();
         return documentSnapshot.Exists ? documentSnapshot.ConvertTo<Note>() : null;
     }
     
     public async Task<IEnumerable<Note>> GetNotesByUserId(string userId)
     {
-        Stopwatch stopwatch = Stopwatch.StartNew();
-        Console.WriteLine("==================================================================");
-        Console.WriteLine("Getting notes by user id");
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var userSnapshot = await userRef.GetSnapshotAsync();
-        
-        Console.WriteLine("User snapshot exists: " + userSnapshot.Exists);
-
-        Console.WriteLine("Fetching notebooks...");
-        var notebooksQuerySnapshot = await userRef.Collection("notebooks").GetSnapshotAsync();
-        var notebookDocs = notebooksQuerySnapshot.Documents;
-        Console.WriteLine("Notebooks fetched: " + notebookDocs.Count);
-        
-        var notes = new List<Note>();
-        foreach (var notebookDocument in notebooksQuerySnapshot.Documents)
-        {
-            Console.WriteLine("Fetching notes for notebook...");
-            Console.WriteLine("Notebook ID: " + notebookDocument.Id);
-            var notebookId = notebookDocument.Id;
-            var notesCollection = notebookDocument.Reference.Collection("notes");
-            var notesQuerySnapshot = await notesCollection.GetSnapshotAsync();
-            
-            Console.WriteLine("Notes fetched: " + notesQuerySnapshot.Documents.Count);
-            Console.WriteLine("Adding notes to list...");
-            foreach (var noteDocument in notesQuerySnapshot.Documents)
-            {
-                Console.WriteLine("Note ID: " + noteDocument.Id);
-                notes.Add(noteDocument.ConvertTo<Note>());
-            }
-        }
-        Console.WriteLine("Returning notes...");
-        stopwatch.Stop();
-        Console.WriteLine("Elapsed time: " + stopwatch.ElapsedMilliseconds + "ms");
-        return notes;
-    }
-
-    public async Task<IEnumerable<Note>> GetNotesByNotebookId(string userId, string notebookId)
-    {
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString());
-        var notesCollection = notebookRef.Collection("notes");
-
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var notesCollection = userRef.Collection(NotesCollectionName);
         var querySnapshot = await notesCollection.GetSnapshotAsync();
-
         var notes = new List<Note>();
         foreach (var documentSnapshot in querySnapshot.Documents)
         {
@@ -119,45 +58,48 @@ public class NoteRepository : INoteRepository
         return notes;
     }
 
-    public async Task<Note> CreateNote(string userId, string notebookId, Note note)
+    public async Task<IEnumerable<Note>> GetNotesByNotebookId(string userId, string notebookId)
     {
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebookCollection = userRef.Collection("notebooks");
-        var newNotebook = new Notebook
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var notesCollection = userRef.Collection(NotesCollectionName);
+        var querySnapshot = await notesCollection.WhereEqualTo("notebookId", notebookId).GetSnapshotAsync();
+        var notes = new List<Note>();
+        foreach (var documentSnapshot in querySnapshot.Documents)
         {
-            NotebookId = notebookId,
-            UserId = userId,
-            NotebookTitle = "All Notes",
-        };
-        
-        await notebookCollection.Document(newNotebook.NotebookId).SetAsync(newNotebook,SetOptions.MergeAll);
-        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString()); // TODO: CHANGE WHEN NOTEBOOKS IMPLEMENTED
-        
-        var noteCollection = notebookRef.Collection("notes");
-        
+            notes.Add(documentSnapshot.ConvertTo<Note>());
+        }
+
+        return notes;
+    }
+
+    public async Task<Note> CreateNote(string userId, Note note)
+    {
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteCollection = userRef.Collection(NotesCollectionName);
         note.NoteId = Helpers.GenerateNewNoteId(note).ToUpper();
+        note.UserId = userId;
+        note.NotebookId = "nb_" + userId;
         note.DateCreated = DateTime.UtcNow;
         note.DateUpdated = DateTime.UtcNow;
-
         await noteCollection.Document(note.NoteId).SetAsync(note);
         return note;
     }
 
-    public async Task<Note> UpdateNote(string userId, string notebookId, Note note)
+    public async Task<Note> UpdateNote(string userId, Note note)
     {
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString());
-        var noteDocument = notebookRef.Collection("notes").Document(note.NoteId.ToString());
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteDocument = userRef.Collection(NotesCollectionName).Document(note.NoteId);
+        note.NotebookId = "nb_" + userId;
+        note.NotebookId = "nb_" + userId;
         note.DateUpdated = DateTime.UtcNow;
         await noteDocument.SetAsync(note, SetOptions.MergeAll);
         return note;
     }
     
-    public async Task DeleteNote(string userId, string notebookId, string noteId)
+    public async Task DeleteNote(string userId, string noteId)
     {
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId.ToString());
-        var notebookRef = userRef.Collection("notebooks").Document(notebookId.ToString());
-        var noteDocument = notebookRef.Collection("notes").Document(noteId.ToString());
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteDocument = userRef.Collection(NotesCollectionName).Document(noteId);
         await noteDocument.DeleteAsync();
     }
 }

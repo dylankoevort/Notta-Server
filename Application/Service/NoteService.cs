@@ -17,9 +17,9 @@ public class NoteService : INoteService
         return await _noteRepository.GetAllNotes();
     }
 
-    public async Task<Note> GetNoteById(string userId, string notebookId, string noteId)
+    public async Task<Note> GetNoteById(string userId,string noteId)
     {
-        return await _noteRepository.GetNoteById(userId, notebookId, noteId);
+        return await _noteRepository.GetNoteById(userId, noteId);
     }
     
     public async Task<IEnumerable<Note>> GetNotesByUserId(string userId)
@@ -32,18 +32,18 @@ public class NoteService : INoteService
         return await _noteRepository.GetNotesByNotebookId(userId, notebookId);
     }
     
-    public async Task<Note> CreateNote(string userId, string notebookId, Note note)
+    public async Task<Note> CreateNote(string userId, Note note)
     {
-        return await _noteRepository.CreateNote(userId, notebookId, note);
+        return await _noteRepository.CreateNote(userId, note);
     }
 
-    public async Task<Note> UpdateNote(string userId, string notebookId, Note note)
+    public async Task<Note> UpdateNote(string userId, Note note)
     {
-        return await _noteRepository.UpdateNote(userId, notebookId, note);
+        return await _noteRepository.UpdateNote(userId, note);
     }
 
-    public async Task DeleteNote(string userId, string notebookId, string noteId)
+    public async Task DeleteNote(string userId, string noteId)
     {
-        await _noteRepository.DeleteNote(userId, notebookId, noteId);
+        await _noteRepository.DeleteNote(userId, noteId);
     }
 }
