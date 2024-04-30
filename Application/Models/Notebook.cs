@@ -35,11 +35,11 @@ namespace Models
 
             return new Notebook
             {
-                NotebookId = (string)(dictionary["notebookId"]),
-                UserId = (string)(dictionary["userId"]),
-                NotebookTitle = (string)dictionary["notebookTitle"],
-                NotebookDescription = (string)dictionary["notebookDescription"],
-                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
+                NotebookId = (string)(dictionary["NotebookId"]),
+                UserId = (string)(dictionary["UserId"]),
+                NotebookTitle = (string)dictionary["NotebookTitle"],
+                NotebookDescription = (string)dictionary["NotebookDescription"],
+                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["DateCreated"]),
                 Notes = new List<Note>()
             };
         }
@@ -50,11 +50,11 @@ namespace Models
 
             return new Notebook
             {
-                NotebookId = (string)(dictionary["notebookId"]),
-                UserId = (string)(dictionary["userId"]),
-                NotebookTitle = (string)dictionary["notebookTitle"],
-                NotebookDescription = (string)dictionary["notebookDescription"],
-                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
+                NotebookId = (string)(dictionary["NotebookId"]),
+                UserId = (string)(dictionary["UserId"]),
+                NotebookTitle = (string)dictionary["NotebookTitle"],
+                NotebookDescription = (string)dictionary["NotebookDescription"],
+                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["DateCreated"]),
                 Notes = new List<Note>()
             };
         }

@@ -20,11 +20,13 @@ public class FirebaseContext
 
             // Set the environment variable for GOOGLE_APPLICATION_CREDENTIALS
             Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", keyFile);
+            Console.WriteLine("GOOGLE_APPLICATION_CREDENTIALS: " + keyFile);
 
             // Create Firestore client with custom converters
             FirestoreDbBuilder firestoreBuilder = new FirestoreDbBuilder
             {
-                ProjectId = projectId
+                ProjectId = projectId,
+                CredentialsPath = keyFile
             };
             
             firestoreBuilder.ConverterRegistry = new ConverterRegistry();

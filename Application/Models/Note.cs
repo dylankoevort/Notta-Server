@@ -36,13 +36,13 @@ namespace Models
 
             return new Note
             {
-                NoteId = (string)(dictionary["noteId"]),
-                UserId = (string)(dictionary["userId"]),
-                NotebookId = (string)(dictionary["notebookId"]),
-                NoteTitle = (string)dictionary["noteTitle"],
-                NoteContent = (string)dictionary["noteContent"],
-                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
-                DateUpdated = Helpers.ConvertFirestoreTimestamp(dictionary["dateUpdated"])
+                NoteId = (string)(dictionary["NoteId"]),
+                UserId = (string)(dictionary["UserId"]),
+                NotebookId = (string)(dictionary["NotebookId"]),
+                NoteTitle = (string)dictionary["NoteTitle"],
+                NoteContent = (string)dictionary["NoteContent"],
+                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["DateCreated"]),
+                DateUpdated = Helpers.ConvertFirestoreTimestamp(dictionary["DateUpdated"])
             };
         }
 
@@ -52,13 +52,13 @@ namespace Models
 
             return new Note
             {
-                NoteId = (string)(dictionary["noteId"]),
-                UserId = (string)(dictionary["userId"]),
-                NotebookId = (string)(dictionary["notebookId"]),
-                NoteTitle = (string)dictionary["noteTitle"],
-                NoteContent = (string)dictionary["noteContent"],
-                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["dateCreated"]),
-                DateUpdated = Helpers.ConvertFirestoreTimestamp(dictionary["dateUpdated"])
+                NoteId = (string)(dictionary["NoteId"]),
+                UserId = (string)(dictionary["UserId"]),
+                NotebookId = (string)(dictionary["NotebookId"]),
+                NoteTitle = (string)dictionary["NoteTitle"],
+                NoteContent = (string)dictionary["NoteContent"],
+                DateCreated = Helpers.ConvertFirestoreTimestamp(dictionary["DateCreated"]),
+                DateUpdated = Helpers.ConvertFirestoreTimestamp(dictionary["DateUpdated"])
             };
         }
 
@@ -66,13 +66,13 @@ namespace Models
         {
             return new Dictionary<string, object>
             {
-                { "noteId", value.NoteId },
-                { "userId", value.UserId },
-                { "notebookId", value.NotebookId },
-                { "noteTitle", value.NoteTitle },
-                { "noteContent", value.NoteContent },
-                { "dateCreated", value.DateCreated },
-                { "dateUpdated", value.DateUpdated }
+                { "NoteId", value.NoteId },
+                { "UserId", value.UserId },
+                { "NotebookId", value.NotebookId },
+                { "NoteTitle", value.NoteTitle },
+                { "NoteContent", value.NoteContent },
+                { "DateCreated", value.DateCreated },
+                { "DateUpdated", value.DateUpdated }
             };
         }
     }
