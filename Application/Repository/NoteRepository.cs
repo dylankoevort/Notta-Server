@@ -46,23 +46,31 @@ public class NoteRepository : INoteRepository
     
     public async Task<IEnumerable<Note>> GetNotesByUserId(string userId)
     {
-        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
-        var notesCollection = userRef.Collection(NotesCollectionName);
-        var querySnapshot = await notesCollection.GetSnapshotAsync();
-        var notes = new List<Note>();
-        foreach (var documentSnapshot in querySnapshot.Documents)
+        try
         {
-            notes.Add(documentSnapshot.ConvertTo<Note>());
-        }
+            var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+            var notesCollection = userRef.Collection(NotesCollectionName);
+            var querySnapshot = await notesCollection.GetSnapshotAsync();
+            var notes = new List<Note>();
+            foreach (var documentSnapshot in querySnapshot.Documents)
+            {
+                notes.Add(documentSnapshot.ConvertTo<Note>());
+            }
 
-        return notes;
+            return notes;
+        } 
+        catch (Exception e)
+        {
+            Debug.WriteLine(e);
+            return null;
+        }
     }
 
     public async Task<IEnumerable<Note>> GetNotesByNotebookId(string userId, string notebookId)
     {
         var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
         var notesCollection = userRef.Collection(NotesCollectionName);
-        var querySnapshot = await notesCollection.WhereEqualTo("notebookId", notebookId).GetSnapshotAsync();
+        var querySnapshot = await notesCollection.WhereEqualTo("NotebookId", notebookId).GetSnapshotAsync();
         var notes = new List<Note>();
         foreach (var documentSnapshot in querySnapshot.Documents)
         {
