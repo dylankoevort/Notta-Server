@@ -1,6 +1,4 @@
-﻿using Application.Helpers;
-using AutoMapper;
-using Infrastructure;
+﻿using Infrastructure;
 using Models;
 
 namespace Service;
@@ -8,165 +6,44 @@ namespace Service;
 public class NoteService : INoteService
 {
     private readonly INoteRepository _noteRepository;
-    private readonly IUserService _userService;
 
-    public NoteService(INoteRepository noteRepository, IUserService userService)
+    public NoteService(INoteRepository noteRepository)
     {
         _noteRepository = noteRepository;
-        _userService = userService;
+    }
+
+    public async Task<IEnumerable<Note>> GetAllNotes()
+    {
+        return await _noteRepository.GetAllNotes();
+    }
+
+    public async Task<Note> GetNoteById(string userId,string noteId)
+    {
+        return await _noteRepository.GetNoteById(userId, noteId);
     }
     
-    public IEnumerable<Note> GetAllNotes()
+    public async Task<IEnumerable<Note>> GetNotesByUserId(string userId)
     {
-        try 
-        {
-            return _noteRepository.GetAllNotes();
-        } 
-        catch (Exception ex) 
-        {
-            // logger.LogError(ex, "An error occurred while getting notes");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
-    }
-
-    public IEnumerable<Note> GetNotesByUserId(int? userId, string? userUid)
-    {
-        try
-        {
-            var dbUser = _userService.GetUserById(userId, userUid);
-
-            if (dbUser == null)
-            {
-                return Enumerable.Empty<Note>();
-            }
-
-            return _noteRepository.GetNotesByUserId(dbUser.UserId);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting notes by user ID");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
-    }
-
-    public Note GetNoteById(int noteId)
-    {
-        try
-        {
-            return _noteRepository.GetNoteById(noteId);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting note by ID");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        return await _noteRepository.GetNotesByUserId(userId);
     }
     
-    public Note GetNoteBySlug(string noteSlug)
+    public async Task<IEnumerable<Note>> GetNotesByNotebookId(string userId, string notebookId)
     {
-        try
-        {
-            return _noteRepository.GetNoteBySlug(noteSlug);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting note by slug");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        return await _noteRepository.GetNotesByNotebookId(userId, notebookId);
+    }
+    
+    public async Task<Note> CreateNote(string userId, Note note)
+    {
+        return await _noteRepository.CreateNote(userId, note);
     }
 
-    public void AddNote(Note note)
+    public async Task<Note> UpdateNote(string userId, Note note)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(note.NoteTitle))
-            {
-                note.NoteTitle = "Untitled";
-            }
-            
-            if (string.IsNullOrEmpty(note.NoteContent))
-            {
-                note.NoteContent = "No content";
-            }
-            
-            User dbUser = _userService.GetUserById(note.UserId, note.UserUid);
-            
-            if (dbUser == null)
-            {
-                throw new Exception("User not found");
-            }
-            
-            note.UserId = dbUser.UserId;
-            note.UserUid = dbUser.UserUid;
-            note.DateCreated = DateTime.UtcNow;
-            note.DateUpdated = DateTime.UtcNow;
-            note.NoteSlug = NoteSlugGenerator.GenerateSlug(note).ToUpper();
-                
-            _noteRepository.AddNote(note);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while adding note");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        return await _noteRepository.UpdateNote(userId, note);
     }
 
-    public void UpdateNote(Note note)
+    public async Task DeleteNote(string userId, string noteId)
     {
-        try
-        {
-            if (note.NoteId == 0 || note.NoteId == null)
-            {
-                throw new ArgumentNullException(nameof(note.NoteId), "NoteId must be provided");
-            }
-            
-            var existingNote = GetNoteById(note.NoteId);
-            
-            if (existingNote == null)
-            {
-                throw new InvalidOperationException("Note does not exist");
-            }
-            
-            if (string.IsNullOrEmpty(note.NoteTitle))
-            {
-                note.NoteTitle = "Untitled";
-            }
-            
-            if (string.IsNullOrEmpty(note.NoteContent))
-            {
-                note.NoteContent = "No content";
-            }
-            
-            existingNote.NoteTitle = note.NoteTitle;
-            existingNote.NoteContent = note.NoteContent;
-            existingNote.DateUpdated = DateTime.UtcNow;
-            
-            _noteRepository.UpdateNote();
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while updating note");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
-    }
-
-    public void DeleteNote(int noteId)
-    {
-        try
-        {
-            _noteRepository.DeleteNote(noteId);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while deleting note");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        await _noteRepository.DeleteNote(userId, noteId);
     }
 }

@@ -2,129 +2,66 @@ using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 
-namespace Application.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
-public class UserController : ControllerBase
+namespace Application.Controllers
 {
-    private readonly IUserService _userService;
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController : ControllerBase
+    {
+        private readonly IUserService _userService;
 
-    public UserController(IUserService userService)
-    {
-        _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-    }
-    
-// GET: api/User/GetUsers
-    [HttpGet("GetUsers")]
-    public ActionResult<IEnumerable<User>> GetUsers()
-    {
-        try
+        public UserController(IUserService userService)
         {
-            var users = _userService.GetAllUsers();
+            _userService = userService;
+        }
+
+        [HttpGet("GetAllUsers")]
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+        {
+            var users = await _userService.GetAllUsers();
             return Ok(users);
         }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting users");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
-    
-    // GET: api/User/GetUserById/{userId/userUid}
-    [HttpGet("GetUserById")]
-    public ActionResult<User> GetUserById(int? userId, string? userUid)
-    {
-        try
-        {
-            if (userId == null && userUid == null)
-            {
-                return BadRequest("userId or userUid must be provided");
-            }
 
-            User user = _userService.GetUserById(userId, userUid);
-        
+        [HttpGet("GetUserById")]
+        public async Task<ActionResult<User>> GetUserById(string userId)
+        {
+            var user = await _userService.GetUserById(userId);
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound();
             }
-
             return Ok(user);
         }
-        catch (Exception ex)
+
+        [HttpPost("CreateUser")]
+        public async Task<ActionResult<User>> CreateUser(User user)
         {
-            // logger.LogError(ex, "An error occurred while processing GetUserById request");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
+            var createdUser = await _userService.CreateUser(user);
+            return CreatedAtAction(nameof(GetUserById), new { userId = createdUser.UserId }, createdUser);
         }
-    }
-    
-// POST: api/User/AddUser
-    [HttpPost("AddUser")]
-    public ActionResult<User> AddUser([FromBody] User user)
-    {
-        try
+
+        [HttpPut("UpdateUser")]
+        public async Task<ActionResult<User>> UpdateUser(string userId, User user)
         {
-            if (user == null)
+            if (userId != user.UserId)
             {
-                return BadRequest("User data is missing");
+                return BadRequest("User ID mismatch");
             }
 
-            _userService.AddUser(user);
-
-            return CreatedAtAction(nameof(GetUserById), new { userId = user.UserId }, user);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while adding user");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
-    
-// PUT: api/User/UpdateUser/{userUid}
-    [HttpPut("UpdateUser")]
-    public IActionResult UpdateUser(string userUid, [FromBody] User user)
-    {
-        try
-        {
-            if (!userUid.Equals(user.UserUid))
+            var updatedUser = await _userService.UpdateUser(user);
+            if (updatedUser == null)
             {
-                return BadRequest("User Uid mismatch");
+                return NotFound();
             }
 
-            _userService.UpdateUser(user);
-            return Ok("User updated successfully");
+            return Ok(updatedUser);
         }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while updating user");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
-        }
-    }
 
-    
-// DELETE: api/User/DeleteUser/{userId/userUid}
-    [HttpDelete("DeleteUser")]
-    public IActionResult DeleteUser(int? userId, string? userUid)
-    {
-        try
+        [HttpDelete("DeleteUser")]
+        public async Task<ActionResult> DeleteUser(string userId)
         {
-            if (userId == null && userUid == null)
-            {
-                return BadRequest("userId or userUid must be provided");
-            }
-
-            _userService.DeleteUser(userId, userUid);
-            return Ok("User deleted successfully");
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while deleting user");
-            Console.WriteLine(ex.Message);
-            return StatusCode(500, "An error occurred while processing the request: " + ex.Message);
+            await _userService.DeleteUser(userId);
+            return NoContent();
         }
     }
 }

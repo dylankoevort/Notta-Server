@@ -1,125 +1,105 @@
-﻿using Application;
+﻿using Google.Cloud.Firestore;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Application.Helpers;
 using Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using Models;
-
-namespace Repository;
 
 public class NoteRepository : INoteRepository
 {
-    private readonly AppDbContext _context;
+    private readonly FirebaseContext _firebaseContext;
+    private const string UsersCollectionName = "users";
+    private const string NotesCollectionName = "notes";
 
-    public NoteRepository(AppDbContext context)
+    public NoteRepository(FirebaseContext firebaseContext)
     {
-        _context = context;
+        _firebaseContext = firebaseContext ?? throw new ArgumentNullException(nameof(firebaseContext));
+    }
+
+    public async Task<IEnumerable<Note>> GetAllNotes()
+    {
+        var usersCollection = _firebaseContext.Database.Collection(UsersCollectionName);
+        var allNotes = new List<Note>();
+        var usersQuerySnapshot = await usersCollection.GetSnapshotAsync();
+        foreach (var userDocument in usersQuerySnapshot.Documents)
+        {
+                var notesCollection = userDocument.Reference.Collection(NotesCollectionName);
+                var notesQuerySnapshot = await notesCollection.GetSnapshotAsync();
+                foreach (var noteDocument in notesQuerySnapshot.Documents)
+                {
+                    allNotes.Add(noteDocument.ConvertTo<Note>());
+                }
+        }
+
+        return allNotes;
+    }
+
+    public async Task<Note> GetNoteById(string userId, string noteId)
+    {
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteDocument = userRef.Collection(NotesCollectionName).Document(noteId);
+        var documentSnapshot = await noteDocument.GetSnapshotAsync();
+        return documentSnapshot.Exists ? documentSnapshot.ConvertTo<Note>() : null;
     }
     
-    public IEnumerable<Note> GetAllNotes()
+    public async Task<IEnumerable<Note>> GetNotesByUserId(string userId)
     {
-        try
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var notesCollection = userRef.Collection(NotesCollectionName);
+        var querySnapshot = await notesCollection.GetSnapshotAsync();
+        var notes = new List<Note>();
+        foreach (var documentSnapshot in querySnapshot.Documents)
         {
-            return _context.Notes.ToList();
+            notes.Add(documentSnapshot.ConvertTo<Note>());
         }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting all notes");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+
+        return notes;
     }
 
-    public IEnumerable<Note> GetNotesByUserId(int userId)
+    public async Task<IEnumerable<Note>> GetNotesByNotebookId(string userId, string notebookId)
     {
-        try
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var notesCollection = userRef.Collection(NotesCollectionName);
+        var querySnapshot = await notesCollection.WhereEqualTo("notebookId", notebookId).GetSnapshotAsync();
+        var notes = new List<Note>();
+        foreach (var documentSnapshot in querySnapshot.Documents)
         {
-            return _context.Notes.Where(n => n.UserId == userId).ToList();
+            notes.Add(documentSnapshot.ConvertTo<Note>());
         }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting notes by user ID");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+
+        return notes;
     }
 
-    public Note GetNoteById(int noteId)
+    public async Task<Note> CreateNote(string userId, Note note)
     {
-        try
-        {
-            return _context.Notes.FirstOrDefault(n => n.NoteId == noteId);
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting note by ID");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteCollection = userRef.Collection(NotesCollectionName);
+        note.NoteId = Helpers.GenerateNewNoteId(note).ToUpper();
+        note.UserId = userId;
+        note.NotebookId = "nb_" + userId;
+        note.DateCreated = DateTime.UtcNow;
+        note.DateUpdated = DateTime.UtcNow;
+        await noteCollection.Document(note.NoteId).SetAsync(note);
+        return note;
+    }
+
+    public async Task<Note> UpdateNote(string userId, Note note)
+    {
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteDocument = userRef.Collection(NotesCollectionName).Document(note.NoteId);
+        note.NotebookId = "nb_" + userId;
+        note.NotebookId = "nb_" + userId;
+        note.DateUpdated = DateTime.UtcNow;
+        await noteDocument.SetAsync(note, SetOptions.MergeAll);
+        return note;
     }
     
-    public Note GetNoteBySlug(string noteSlug)
+    public async Task DeleteNote(string userId, string noteId)
     {
-        try
-        {
-            return _context.Notes.FirstOrDefault(n => n.NoteSlug.ToLower().Equals(noteSlug.ToLower()));
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while getting note by slug");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
+        var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
+        var noteDocument = userRef.Collection(NotesCollectionName).Document(noteId);
+        await noteDocument.DeleteAsync();
     }
-
-    public void AddNote(Note note)
-    {
-        try
-        {
-            _context.Notes.Add(note);
-            _context.SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while adding note");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
-    }
-
-    public void UpdateNote()
-    {
-        try
-        {
-            _context.SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while updating note");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
-    }
-
-    public void DeleteNote(int noteId)
-    {
-        try
-        {
-            var note = _context.Notes.FirstOrDefault(n => n.NoteId == noteId);
-            if (note != null)
-            {
-                _context.Notes.Remove(note);
-                _context.SaveChanges();
-            }
-            else
-            {
-                throw new InvalidOperationException($"Note with ID {noteId} not found");
-            }
-        }
-        catch (Exception ex)
-        {
-            // logger.LogError(ex, "An error occurred while deleting note");
-            Console.WriteLine(ex.Message);
-            throw;
-        }
-    }
-
 }
