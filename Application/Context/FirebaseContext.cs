@@ -1,13 +1,18 @@
 using Google.Cloud.Firestore;
 using Models;
 using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 
 public class FirebaseContext
 {
     private FirestoreDb _db;
+    private readonly ILogger<FirebaseContext> _logger;
 
-    public FirebaseContext()
+    public FirebaseContext(ILogger<FirebaseContext> logger)
     {
+        _logger = logger;
+        
         string projectId = "notta-418218";
         string keyFile = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
 
@@ -21,7 +26,8 @@ public class FirebaseContext
             // Set the environment variable for GOOGLE_APPLICATION_CREDENTIALS
             Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", keyFile);
             Console.WriteLine("GOOGLE_APPLICATION_CREDENTIALS: " + keyFile);
-
+            _logger.LogInformation("GOOGLE_APPLICATION_CREDENTIALS: {keyFile}", keyFile);
+            
             // Create Firestore client with custom converters
             FirestoreDbBuilder firestoreBuilder = new FirestoreDbBuilder
             {
@@ -44,6 +50,8 @@ public class FirebaseContext
             Console.WriteLine("Error creating Firestore client: " + ex.Message);
             // Print the stack trace for more detailed error information
             Console.WriteLine("Stack Trace: " + ex.StackTrace);
+            
+            _logger.LogError(ex, "Error creating Firestore client");
         }
     }
 

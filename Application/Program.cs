@@ -22,8 +22,12 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAn
     .AllowAnyMethod()
     .AllowAnyHeader()));
 
+// Logging
+builder.Services.AddApplicationInsightsTelemetry(builder.Configuration);
+builder.Services.AddScoped<FirebaseContext>();
+builder.Services.AddScoped<ILogger<FirebaseContext>, Logger<FirebaseContext>>();
+
 builder.Services.AddSingleton<DatabaseTester>();
-builder.Services.AddSingleton<FirebaseContext>();
 
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
