@@ -63,3 +63,5 @@ appsettings.json
 appsettings.Development.json
 ProjectComponentFunctions.txt
 .git/
+
+firebase.json
