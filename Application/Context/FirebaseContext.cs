@@ -17,6 +17,8 @@ public class FirebaseContext
         string projectId = "notta-418218";
         string storageConnectionString = Environment.GetEnvironmentVariable("AzureStorageConnectionString");
         
+        _logger.LogInformation("Creating Firestore client...");
+        _logger.LogInformation($"Azure Blob Connection String: {storageConnectionString}");
         try
         {
             // Download the service account JSON file from Azure Blob Storage
