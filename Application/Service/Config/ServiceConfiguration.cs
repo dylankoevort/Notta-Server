@@ -15,6 +15,5 @@ public static class ServiceConfiguration
             .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<INotebookRepository, NotebookRepository>()
             .AddScoped<INoteRepository, NoteRepository>();
-
     }
 }
