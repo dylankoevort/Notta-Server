@@ -26,7 +26,6 @@ public class FirebaseContext
             FirestoreDbBuilder firestoreBuilder = new FirestoreDbBuilder
             {
                 ProjectId = projectId,
-                CredentialsPath = keyFile
             };
             
             firestoreBuilder.ConverterRegistry = new ConverterRegistry();
@@ -42,7 +41,9 @@ public class FirebaseContext
         catch (Exception ex)
         {
             // Log or handle exceptions during Firestore client creation
-            Console.WriteLine("Error creating Firestore client:", ex);
+            Console.WriteLine("Error creating Firestore client: " + ex.Message);
+            // Print the stack trace for more detailed error information
+            Console.WriteLine("Stack Trace: " + ex.StackTrace);
         }
     }
 
