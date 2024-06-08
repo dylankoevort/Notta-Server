@@ -98,7 +98,6 @@ public class NoteRepository : INoteRepository
         var userRef = _firebaseContext.Database.Collection(UsersCollectionName).Document(userId);
         var noteDocument = userRef.Collection(NotesCollectionName).Document(note.NoteId);
         note.NotebookId = "nb_" + userId;
-        note.NotebookId = "nb_" + userId;
         note.DateUpdated = DateTime.UtcNow;
         await noteDocument.SetAsync(note, SetOptions.MergeAll);
         return note;
